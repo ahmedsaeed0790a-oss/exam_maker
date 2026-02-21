@@ -1,392 +1,545 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>إنشاء امتحان جديد</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-<style>
-:root { --primary-color: #6C5CE7; --secondary-color: #A29BFE; --light-color: #F5F6FA; --dark-color: #2D3436; --success-color: #00CE9F; --danger-color: #E74C3C; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AMG Flex | منصة المسلسلات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #e50914;
+            --primary-hover: #f40612;
+            --bg: #0b0b0b;
+            --surface: #181818;
+            --text: #ffffff;
+            --text-muted: #aaaaaa;
+            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
 
-body { font-family: 'Tajawal', sans-serif; background-color: var(--light-color); margin: 0; padding: 0; color: var(--dark-color); }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-.container { max-width: 800px; margin: 0 auto; padding: 0 20px 40px 20px; }
+        header { background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); padding: 20px 40px; position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; transition: background 0.3s; }
+        header.scrolled { background: rgba(11, 11, 11, 0.95); backdrop-filter: blur(10px); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        h1 { margin: 0; color: var(--primary); font-size: 28px; font-weight: 800; display: flex; align-items: center; gap: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
 
-header {
-background-color: var(--primary-color); color: white; padding: 20px;
-border-radius: 15px; text-align: center; margin-bottom: 20px;
-box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
+        .main-container { padding: 100px 4vw 40px; min-height: 100vh; }
+        .section-title { font-size: 24px; margin-bottom: 25px; font-weight: 700; position: relative; padding-right: 15px;}
+        .section-title::before { content: ''; position: absolute; right: 0; top: 10%; height: 80%; width: 4px; background: var(--primary); border-radius: 4px; }
 
-.card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
 
-.form-group { margin-bottom: 15px; }
-.form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
-.form-control { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; font-family: 'Tajawal'; }
+        .series-card { background: var(--surface); border-radius: 12px; overflow: hidden; cursor: pointer; position: relative; aspect-ratio: 16 / 9; box-shadow: 0 4px 15px rgba(0,0,0,0.4); transition: var(--transition); }
+        .series-card:hover { transform: scale(1.04) translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.7); z-index: 2; }
+        .series-card img { width: 100%; height: 100%; object-fit: cover; transition: var(--transition); }
+        .series-card:hover img { transform: scale(1.05); }
+        .card-gradient { position: absolute; bottom: 0; left: 0; right: 0; height: 70%; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 50%, transparent 100%); display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; pointer-events: none; }
+        .series-card .title { font-size: 20px; font-weight: 700; color: white; margin: 0; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
+        .play-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center; opacity: 0; transition: var(--transition); }
+        .series-card:hover .play-overlay { opacity: 1; }
+        .play-overlay i { font-size: 50px; color: rgba(255,255,255,0.8); filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
 
-.question-card { border-right: 4px solid var(--secondary-color); position: relative; }
-.question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.question-title { font-weight: bold; color: var(--primary-color); }
-.delete-q-btn { background: #ffebeb; color: var(--danger-color); border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; }
+        .episodes-view { display: none; padding-top: 80px; }
+        .series-hero { position: relative; width: 100%; height: 350px; margin-bottom: 40px; border-radius: 20px; overflow: hidden; display: flex; align-items: flex-end; padding: 40px; box-sizing: border-box; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .series-hero-bg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-size: cover; background-position: center; filter: blur(15px) brightness(0.4); transform: scale(1.1); z-index: 1; }
+        .series-hero-content { position: relative; z-index: 2; display: flex; align-items: center; gap: 30px; width: 100%; }
+        .series-hero-img { width: 200px; aspect-ratio: 16/9; object-fit: cover; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.8); border: 2px solid rgba(255,255,255,0.1); }
+        .series-hero-info h2 { font-size: 40px; margin: 0 0 15px 0; text-shadow: 2px 2px 5px rgba(0,0,0,0.8); }
+        .back-btn { background: rgba(255,255,255,0.1); color: white; padding: 12px 25px; border: 1px solid rgba(255,255,255,0.2); border-radius: 30px; cursor: pointer; font-family: 'Cairo'; font-size: 16px; font-weight: 600; transition: var(--transition); backdrop-filter: blur(5px); display: inline-flex; align-items: center; gap: 10px; }
+        .back-btn:hover { background: var(--primary); border-color: var(--primary); }
 
-.options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-.option-item { display: flex; align-items: center; gap: 5px; background: #f9f9f9; padding: 8px; border-radius: 6px; border: 1px solid #eee; }
-.option-item input[type="text"] { border: none; background: transparent; width: 100%; outline: none; }
+        .episode-card-wrapper { display: flex; flex-direction: column; gap: 12px; cursor: pointer; }
+        .episode-card { position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 16 / 9; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: var(--transition); background: var(--surface); }
+        .episode-card img { width: 100%; height: 100%; object-fit: cover; transition: var(--transition); }
+        .episode-card-wrapper:hover .episode-card { transform: scale(1.03); box-shadow: 0 8px 20px rgba(0,0,0,0.7); }
+        .episode-card-wrapper:hover .episode-card img { transform: scale(1.05); }
+        .episode-card-wrapper:hover .play-overlay { opacity: 1; }
+        .episode-title { font-size: 16px; font-weight: 600; color: var(--text); margin: 0; padding-right: 5px; transition: color 0.3s; display: flex; align-items: center; gap: 8px; }
+        .episode-card-wrapper:hover .episode-title { color: var(--primary); }
 
-.btn { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; width: 100%; }
-.btn-add { background-color: var(--secondary-color); color: white; margin-bottom: 10px; }
-.btn-add:hover { background-color: #8c80f7; }
-.btn-save { background-color: var(--success-color); color: white; }
-.btn-save:hover { background-color: #00b38b; }
-.btn-disabled { background-color: #ccc !important; cursor: not-allowed; }
+        /* --- المشغل الاحترافي (التصميم السلس) --- */
+        .player-overlay { 
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); 
+            z-index: 9999; backdrop-filter: blur(10px); flex-direction: column; 
+            justify-content: center; align-items: center; 
+        }
+        
+        .close-player { 
+            position: absolute; top: 30px; right: 30px; color: white; font-size: 35px; 
+            cursor: pointer; z-index: 10010; text-shadow: 0 2px 10px rgba(0,0,0,0.8); transition: transform 0.3s; 
+        }
+        .close-player:hover { transform: scale(1.2) rotate(90deg); color: var(--primary); }
 
-.preview-img { max-width: 100%; height: auto; margin-top: 10px; border-radius: 8px; display: none; max-height: 200px; object-fit: contain; }
+        .video-container { 
+            position: relative; width: 100%; max-width: 1200px; aspect-ratio: 16/9; 
+            background: #000; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.8); 
+            display: flex; align-items: center; justify-content: center; 
+        }
+        
+        /* إعدادات Iframe الخاصة بـ Embed Code */
+        #iframeContainer { width: 100%; height: 100%; display: none; }
+        #iframeContainer iframe { width: 100%; height: 100%; border: none; }
 
-.loading-overlay {
-position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-background: rgba(0,0,0,0.8); z-index: 999;
-display: none; flex-direction: column; justify-content: center; align-items: center; color: white;
-}
-.spinner {
-width: 40px; height: 40px; border: 4px solid #f3f3f3;
-border-top: 4px solid var(--primary-color); border-radius: 50%;
-animation: spin 1s linear infinite;
-}
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .video-container:fullscreen { max-width: 100%; width: 100%; height: 100%; aspect-ratio: auto; }
+        .video-container:-webkit-full-screen { max-width: 100%; width: 100%; height: 100%; aspect-ratio: auto; }
+        
+        video { width: 100%; height: 100%; object-fit: contain; outline: none; background: #000; }
 
-.back-btn-top {
-display: inline-block; background: var(--primary-color); color: white;
-padding: 8px 16px; border-radius: 6px; text-decoration: none;
-font-weight: bold; margin-bottom: 15px; font-size: 14px;
-}
-</style>
+        .center-play-pause { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            font-size: 45px; color: white; background: rgba(0,0,0,0.6); 
+            width: 85px; height: 85px; border-radius: 50%; display: flex; justify-content: center; align-items: center; 
+            opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.2s; z-index: 20; 
+            backdrop-filter: blur(5px); cursor: pointer;
+        }
+        .center-play-pause:active { transform: translate(-50%, -50%) scale(0.9); }
+        
+        .skip-indicator { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); color: white; padding: 20px 30px; border-radius: 50%; font-size: 20px; font-weight: bold; display: none; z-index: 20; pointer-events: none; text-align: center; }
+        .skip-indicator i { display: block; font-size: 30px; margin-bottom: 5px; }
+        .skip-indicator.right { right: 15%; }
+        .skip-indicator.left { left: 15%; }
+        @keyframes fadeOutRipple { 0% { opacity: 1; transform: translateY(-50%) scale(0.8); } 50% { opacity: 1; transform: translateY(-50%) scale(1.1); } 100% { opacity: 0; transform: translateY(-50%) scale(1.3); } }
+
+        .controls { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.95)); padding: 20px 20px 10px; display: flex; flex-direction: column; gap: 10px; opacity: 0; pointer-events: none; transition: opacity 0.4s; direction: ltr; z-index: 30; }
+        .controls-row { display: flex; align-items: center; gap: 20px; width: 100%; }
+        .controls button { background: none; border: none; color: white; font-size: 22px; cursor: pointer; transition: transform 0.2s, color 0.2s; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; }
+        .controls button:hover { transform: scale(1.2); color: var(--primary); }
+        
+        .video-container.controls-active .center-play-pause { opacity: 1; pointer-events: auto; }
+        .video-container.controls-active .controls { opacity: 1; pointer-events: auto; }
+
+        .progress-wrapper { width: 100%; padding: 15px 0; cursor: pointer; touch-action: none; }
+        .progress-container { width: 100%; height: 5px; background: rgba(255,255,255,0.3); border-radius: 5px; position: relative; transition: height 0.2s; }
+        .progress-wrapper:hover .progress-container, .progress-wrapper:active .progress-container { height: 8px; }
+        .progress-bar { height: 100%; background: var(--primary); width: 0%; border-radius: 5px; position: relative; pointer-events: none; }
+        .progress-bar::after { content: ''; position: absolute; right: -6px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; background: white; border-radius: 50%; opacity: 0; transition: opacity 0.2s; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        .progress-wrapper:hover .progress-bar::after, .progress-wrapper:active .progress-bar::after { opacity: 1; }
+
+        .time { color: #ddd; font-size: 14px; font-family: monospace; user-select: none; }
+        .spacer { flex-grow: 1; }
+        
+        .loader { text-align: center; padding: 50px; font-size: 20px; color: var(--text-muted); grid-column: 1 / -1; }
+
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
+            .series-hero { flex-direction: column; align-items: center; height: auto; text-align: center; padding: 30px 20px; }
+            .series-hero-content { flex-direction: column; gap: 15px; }
+            header { padding: 15px 20px; }
+            .main-container { padding-top: 80px; }
+            h1 { font-size: 22px; }
+            .series-hero-img { width: 150px; }
+            .series-hero-info h2 { font-size: 28px; }
+            .controls { padding: 10px; }
+            .controls button { font-size: 20px; width: 30px; height: 30px;}
+            .time { font-size: 12px; }
+            .close-player { top: 15px; right: 15px; font-size: 25px; }
+            .center-play-pause { width: 70px; height: 70px; font-size: 35px; }
+        }
+    </style>
 </head>
 <body>
 
-<div class="loading-overlay" id="loadingOverlay">
-<div class="spinner"></div>
-<p style="margin-top: 10px; font-weight: bold;" id="loadingText">جاري الحفظ...</p>
-</div>
+    <header id="header">
+        <h1><i class="fa-solid fa-clapperboard"></i> AMG Flex</h1>
+    </header>
 
-<div style="width: 100%; max-width: 800px; margin: 0 auto; padding-top: 20px;">
-<a href="#" class="back-btn-top"><i class="fas fa-arrow-right"></i> العودة للرئيسية</a>
-</div>
+    <div class="main-container" id="mainView">
+        <h2 class="section-title">أحدث المسلسلات</h2>
+        <div class="grid" id="seriesGrid">
+            <div class="loader"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري تحميل المسلسلات...</div>
+        </div>
+    </div>
 
-<div class="container">
-<header>
-<h1>إنشاء امتحان جديد</h1>
-</header>
+    <div class="main-container episodes-view" id="episodesView">
+        <div class="series-hero">
+            <div class="series-hero-bg" id="heroBg"></div>
+            <div class="series-hero-content">
+                <img src="" alt="" class="series-hero-img" id="heroImg">
+                <div class="series-hero-info">
+                    <h2 id="seriesTitleDisplay"></h2>
+                    <button class="back-btn" onclick="showMainView()"><i class="fa-solid fa-arrow-right"></i> العودة للقائمة</button>
+                </div>
+            </div>
+        </div>
+        <h3 class="section-title">الحلقات</h3>
+        <div class="grid" id="episodesListContainer"></div>
+    </div>
 
-<div class="card">
-<h3>بيانات الامتحان</h3>
-<div class="form-group">
-<label>عنوان الامتحان</label>
-<input type="text" id="examTitle" class="form-control" placeholder="مثال: امتحان شامل شهر أكتوبر">
-</div>
-<div class="form-group">
-<label>مدة الامتحان (بالدقائق)</label>
-<input type="number" id="examDuration" class="form-control" placeholder="30" value="30">
-</div>
-<div class="form-group">
-<label>السنة الدراسية (المدرس)</label>
-<select id="yearSelect" class="form-control">
-<option value="" disabled selected>-- انتظر تهيئة النظام... --</option>
-</select>
-</div>
-<div class="form-group">
-<label>الشهر الدراسي</label>
-<select id="monthSelect" class="form-control" disabled>
-<option value="" disabled selected>-- اختر السنة أولاً --</option>
-</select>
-</div>
-</div>
+    <div class="player-overlay" id="playerOverlay">
+        <i class="fa-solid fa-times close-player" onclick="closePlayer()"></i>
+        
+        <div class="video-container" id="videoContainer">
+            <div id="iframeContainer"></div>
+            
+            <video id="customVideo" playsinline></video>
+            
+            <div class="center-play-pause" id="centerPlayIcon"><i class="fa-solid fa-pause"></i></div>
+            <div class="skip-indicator left" id="skipLeft"><i class="fa-solid fa-backward-step"></i><span>10 ث</span></div>
+            <div class="skip-indicator right" id="skipRight"><i class="fa-solid fa-forward-step"></i><span>10 ث</span></div>
+            
+            <div class="controls" id="videoControls">
+                <div class="progress-wrapper" id="progressContainer">
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                </div>
+                <div class="controls-row">
+                    <button id="playPauseBtn"><i class="fa-solid fa-play"></i></button>
+                    <button id="muteBtn"><i class="fa-solid fa-volume-high"></i></button>
+                    <div class="time" id="timeDisplay">00:00 / 00:00</div>
+                    <div class="spacer"></div>
+                    <button id="fullscreenBtn"><i class="fa-solid fa-expand"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<div id="questionsContainer"></div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-<button class="btn btn-add" onclick="addQuestionUI()">
-<i class="fas fa-plus"></i> إضافة سؤال جديد
-</button>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBwKCkjMX9SZ3Nw2px6q1pf5PZr4UvMcSs",
+            authDomain: "moslslat-89ebf.firebaseapp.com",
+            projectId: "moslslat-89ebf",
+            storageBucket: "moslslat-89ebf.firebasestorage.app",
+            messagingSenderId: "80549912513",
+            appId: "1:80549912513:web:14b36e5e6e87d3aabb9940",
+            measurementId: "G-DJLCLK6HXN",
+            databaseURL: "https://moslslat-89ebf-default-rtdb.firebaseio.com"
+        };
 
-<button id="saveBtn" class="btn btn-save" onclick="saveExam()">
-<i class="fas fa-save"></i> حفظ الامتحان
-</button>
-</div>
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getDatabase, ref, get, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        const seriesGrid = document.getElementById('seriesGrid');
+        const mainView = document.getElementById('mainView');
+        const episodesView = document.getElementById('episodesView');
+        const episodesListContainer = document.getElementById('episodesListContainer');
+        const seriesTitleDisplay = document.getElementById('seriesTitleDisplay');
+        const heroBg = document.getElementById('heroBg');
+        const heroImg = document.getElementById('heroImg');
+        const header = document.getElementById('header');
 
-// 1. إعدادات Firebase (يجب أن تكون هذه الإعدادات صحيحة ومفعلة لمشروعك)
-const myConfig = {
-apiKey: 'AIzaSyDOjEvIxmuFAMVHLK0hdBnNL_JxQgfaCa4',
-appId: '1:409574286479:web:4589ff3ca86ff96b2efcfa',
-messagingSenderId: '409574286479',
-projectId: 'elea2-386e6',
-authDomain: 'elea2-386e6.firebaseapp.com',
-databaseURL: 'https://elea2-386e6-default-rtdb.firebaseio.com',
-storageBucket: 'elea2-386e6.firebasestorage.app',
-measurementId: 'G-PQS6L6PCC4'
-};
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) header.classList.add('scrolled');
+            else header.classList.remove('scrolled');
+        });
 
-const configToUse = (typeof __firebase_config !== 'undefined') 
-? JSON.parse(__firebase_config) 
-: myConfig;
+        onValue(ref(db, 'series'), (snapshot) => {
+            seriesGrid.innerHTML = '';
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                for (const seriesId in data) {
+                    const series = data[seriesId];
+                    if(series.info) createSeriesCard(series.info, series.episodes);
+                }
+            } else {
+                seriesGrid.innerHTML = '<div class="loader">لا توجد مسلسلات مضافة بعد.</div>';
+            }
+        });
 
-let app, db;
-try {
-app = initializeApp(configToUse);
-db = getDatabase(app);
-document.getElementById('yearSelect').innerHTML = '<option disabled selected>-- جاري تحميل البيانات... --</option>';
-} catch (error) {
-console.error("Firebase Init Error:", error);
-document.getElementById('yearSelect').innerHTML = '<option disabled>خطأ في تهيئة Firebase</option>';
-}
+        function createSeriesCard(info, episodes) {
+            const card = document.createElement('div');
+            card.className = 'series-card';
+            card.innerHTML = `<img src="${info.image}" alt="${info.name}" loading="lazy"><div class="card-gradient"><h3 class="title">${info.name}</h3></div><div class="play-overlay"><i class="fa-solid fa-circle-play"></i></div>`;
+            card.onclick = () => showEpisodes(info.name, info.image, episodes);
+            seriesGrid.appendChild(card);
+        }
 
-let questionCounter = 0;
+        function showEpisodes(seriesName, seriesImage, episodes) {
+            mainView.style.display = 'none';
+            episodesView.style.display = 'block';
+            window.scrollTo(0,0);
+            seriesTitleDisplay.textContent = seriesName;
+            heroBg.style.backgroundImage = `url('${seriesImage}')`;
+            heroImg.src = seriesImage;
+            episodesListContainer.innerHTML = '';
 
-window.addQuestionUI = addQuestionUI;
-window.saveExam = saveExam;
-window.removeQuestion = removeQuestion;
-window.previewImage = previewImage;
-window.fileToBase64 = fileToBase64;
+            if (episodes) {
+                Object.values(episodes).forEach((ep) => {
+                    const epWrapper = document.createElement('div');
+                    epWrapper.className = 'episode-card-wrapper';
+                    epWrapper.innerHTML = `<div class="episode-card"><img src="${seriesImage}" alt="${ep.title}" loading="lazy"><div class="play-overlay"><i class="fa-solid fa-play"></i></div></div><h4 class="episode-title"><i class="fa-solid fa-tv" style="color:var(--primary); font-size: 12px;"></i> ${ep.title}</h4>`;
+                    
+                    // التعديل هنا: نرسل كود التضمين والرابط المباشر
+                    epWrapper.onclick = () => openPlayer(ep.video, ep.embedCode);
+                    
+                    episodesListContainer.appendChild(epWrapper);
+                });
+            } else {
+                episodesListContainer.innerHTML = '<div class="loader">لم يتم إضافة حلقات لهذا المسلسل بعد.</div>';
+            }
+        }
 
+        window.showMainView = () => { episodesView.style.display = 'none'; mainView.style.display = 'block'; }
 
-// ================= تحميل بيانات المدرسين والشهور (بدون تحقق من المستخدم) =================
+        // --- عناصر المشغل ---
+        const video = document.getElementById('customVideo');
+        const iframeContainer = document.getElementById('iframeContainer');
+        const playerOverlay = document.getElementById('playerOverlay');
+        const videoContainer = document.getElementById('videoContainer');
+        const videoControls = document.getElementById('videoControls');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const centerPlayIcon = document.getElementById('centerPlayIcon');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const muteBtn = document.getElementById('muteBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const skipLeft = document.getElementById('skipLeft');
+        const skipRight = document.getElementById('skipRight');
 
-// **تم تبسيط هذا الجزء ليتحمل القراءة العامة، يجب أن يكون لديك بيانات تحت مسار /years أو /months**
-const loadInitialData = async () => {
-const yearSelect = document.getElementById('yearSelect');
-const saveBtn = document.getElementById('saveBtn');
+        let controlsTimeout;
 
-// إلغاء تفعيل حالة 'disabled' عن زر الحفظ لأنه لا يوجد تسجيل دخول
-saveBtn.classList.remove('btn-disabled'); 
-saveBtn.disabled = false;
+        // التعديل الرئيسي في دالة التشغيل
+        window.openPlayer = (url, embedCode) => {
+            playerOverlay.style.display = 'flex';
 
-try {
-// افتراض: جلب مفاتيح السنوات المتاحة من أي مسار (مثلاً من مسار "months" الرئيسي)
-const allMonthsRef = ref(db, `months`);
-const monthsSnapshot = await get(allMonthsRef);
+            if (embedCode) {
+                // حالة كود التضمين (VdoCipher DRM)
+                video.style.display = 'none';
+                videoControls.style.display = 'none';
+                centerPlayIcon.style.display = 'none';
+                
+                iframeContainer.style.display = 'block';
+                // حقن كود VdoCipher داخل الحاوية
+                iframeContainer.innerHTML = embedCode; 
+                
+            } else if (url) {
+                // حالة الرابط المباشر (mp4 / m3u8)
+                iframeContainer.style.display = 'none';
+                iframeContainer.innerHTML = ''; // مسح أي Iframe سابق
+                
+                video.style.display = 'block';
+                videoControls.style.display = 'flex';
+                centerPlayIcon.style.display = 'flex';
+                
+                video.src = url;
+                video.play();
+                updatePlayIcon();
+                resetControlsTimeout();
+            } else {
+                alert("نعتذر، لا يوجد فيديو متوفر لهذه الحلقة.");
+                closePlayer();
+            }
+        };
 
-if (monthsSnapshot.exists()) {
-yearSelect.innerHTML = '<option value="" disabled selected>-- اختر السنة/المدرس --</option>';
-const yearsData = monthsSnapshot.val(); // هنا تكون مفاتيح هي أسماء السنوات/المدرسين
+        window.closePlayer = () => {
+            video.pause();
+            video.currentTime = 0;
+            
+            // إيقاف الـ Iframe بحذفه من الصفحة
+            iframeContainer.innerHTML = ''; 
+            
+            playerOverlay.style.display = 'none';
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            }
+        };
 
-const teachers = Object.keys(yearsData); // الحصول على مفاتيح السنوات (المدرسين)
+        function togglePlay() {
+            if (video.paused) video.play();
+            else video.pause();
+            updatePlayIcon();
+            resetControlsTimeout();
+        }
 
-teachers.forEach(t => {
-let opt = document.createElement('option');
-opt.value = t; opt.textContent = t;
-yearSelect.appendChild(opt);
-});
+        function updatePlayIcon() {
+            const iconHTML = video.paused ? '<i class="fa-solid fa-play"></i>' : '<i class="fa-solid fa-pause"></i>';
+            playPauseBtn.innerHTML = iconHTML;
+            centerPlayIcon.innerHTML = iconHTML;
+        }
 
-yearSelect.addEventListener('change', (e) => loadMonths(e.target.value));
+        playPauseBtn.onclick = togglePlay;
+        
+        centerPlayIcon.onclick = (e) => {
+            e.stopPropagation();
+            togglePlay();
+        };
 
-if (teachers.length >= 1) {
-// تحديد أول معلم وتحميل شهوره إذا كان لديك بيانات تلقائية
-yearSelect.value = teachers[0];
-loadMonths(teachers[0]);
-}
+        function resetControlsTimeout() {
+            if(iframeContainer.style.display === 'block') return; // لا نطبق هذا على الـ Iframe
+            videoContainer.classList.add('controls-active');
+            videoContainer.style.cursor = "default";
+            clearTimeout(controlsTimeout);
+            controlsTimeout = setTimeout(() => {
+                if(!video.paused) {
+                    videoContainer.classList.remove('controls-active');
+                    videoContainer.style.cursor = "none";
+                }
+            }, 3000);
+        }
 
-addQuestionUI();
-} else {
-yearSelect.innerHTML = '<option disabled>لا توجد سنوات/مدرسين مسجلين في قاعدة البيانات</option>';
-}
-} catch (e) {
-console.error("Error fetching data:", e);
-yearSelect.innerHTML = '<option disabled style="color:red">خطأ: لا تملك صلاحية القراءة العامة (تأكد من Rules)</option>';
-alert("عفواً، قاعدة البيانات ترفض الوصول. يرجى التأكد من تعديل الـ Realtime Database Rules لتكون مفتوحة للقراءة والكتابة.");
-}
-};
+        function toggleControls() {
+            if(iframeContainer.style.display === 'block') return;
+            if (videoContainer.classList.contains('controls-active')) {
+                videoContainer.classList.remove('controls-active');
+                clearTimeout(controlsTimeout);
+            } else {
+                resetControlsTimeout();
+            }
+        }
+        
+        videoContainer.addEventListener('mousemove', resetControlsTimeout);
 
-loadInitialData(); // تشغيل دالة التحميل عند بدء الصفحة
+        let lastTapTime = 0;
+        let singleTapTimeout;
 
+        video.addEventListener('pointerup', (e) => {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTapTime;
 
-// ================= دالة تحميل الشهور (بدون تغيير) =================
-async function loadMonths(yearKey) {
-const monthSelect = document.getElementById('monthSelect');
-monthSelect.innerHTML = '<option value="" disabled selected>جاري التحميل...</option>';
-monthSelect.disabled = true;
+            if (e.pointerType === 'touch') {
+                if (tapLength < 300 && tapLength > 0) {
+                    clearTimeout(singleTapTimeout); 
+                    const rect = video.getBoundingClientRect();
+                    const tapX = e.clientX - rect.left;
+                    if (tapX > rect.width / 2) skipForward();
+                    else skipBackward();
+                } else {
+                    singleTapTimeout = setTimeout(() => { toggleControls(); }, 300);
+                }
+            } else {
+                if (tapLength < 300 && tapLength > 0) {
+                    clearTimeout(singleTapTimeout);
+                    toggleFullScreen(); 
+                } else {
+                    singleTapTimeout = setTimeout(() => { togglePlay(); }, 300);
+                }
+            }
+            lastTapTime = currentTime;
+        });
 
-try {
-const monthsRef = ref(db, `months/${yearKey}`);
-const snapshot = await get(monthsRef);
-monthSelect.innerHTML = '<option value="" disabled selected>-- اختر الشهر --</option>';
+        function showSkipIndicator(direction) {
+            const el = direction === 'forward' ? skipRight : skipLeft;
+            el.style.display = 'block';
+            el.style.animation = 'none';
+            void el.offsetWidth; 
+            el.style.animation = 'fadeOutRipple 0.5s forwards';
+            setTimeout(() => { el.style.display = 'none'; }, 500);
+            resetControlsTimeout();
+        }
 
-if (snapshot.exists()) {
-const data = snapshot.val();
-const arr = Object.entries(data).map(([k, v]) => ({id: k, ...v}));
-arr.sort((a, b) => (a.order || 999) - (b.order || 999));
+        function skipForward() { video.currentTime = Math.min(video.currentTime + 10, video.duration || 0); showSkipIndicator('forward'); }
+        function skipBackward() { video.currentTime = Math.max(video.currentTime - 10, 0); showSkipIndicator('backward'); }
 
-arr.forEach(m => {
-let opt = document.createElement('option');
-opt.value = m.id; opt.textContent = m.name;
-monthSelect.appendChild(opt);
-});
-monthSelect.disabled = false;
-} else {
-monthSelect.innerHTML = '<option disabled>لا توجد شهور مضافة لهذه السنة</option>';
-}
-} catch (e) {
-console.error(e);
-monthSelect.innerHTML = '<option disabled>خطأ في الاتصال</option>';
-}
-}
+        document.addEventListener('keydown', (e) => {
+            if (playerOverlay.style.display !== 'flex') return;
+            if(iframeContainer.style.display === 'block') return; // منع أزرار الكيبورد مع الـ iframe لأنه يدير نفسه
+            switch(e.key) {
+                case 'ArrowRight': skipForward(); break;
+                case 'ArrowLeft': skipBackward(); break;
+                case ' ': e.preventDefault(); togglePlay(); break;
+                case 'f': case 'F': toggleFullScreen(); break;
+            }
+        });
 
-// ================= دوال الواجهة (بدون تغيير) =================
-function addQuestionUI() {
-questionCounter++;
-const container = document.getElementById('questionsContainer');
-const div = document.createElement('div');
-div.className = 'card question-card';
-div.setAttribute('data-id', questionCounter);
+        let isDragging = false;
+        let wasPlaying = false;
 
-div.innerHTML = `
-<div class="question-header">
-<span class="question-title">سؤال رقم ${questionCounter}</span>
-<button class="delete-q-btn" onclick="removeQuestion(this)"><i class="fas fa-trash"></i> حذف</button>
-</div>
-<div class="form-group">
-<input type="text" class="form-control q-text" placeholder="نص السؤال">
-</div>
-<div class="form-group">
-<label style="font-size:13px; color:#666;"><i class="fas fa-image"></i> صورة السؤال (اختياري)</label>
-<input type="file" class="q-image-input" accept="image/*" onchange="previewImage(this); fileToBase64(this, 'base64_data_${questionCounter}')">
-<img class="preview-img">
-<input type="hidden" class="q-base64-data" id="base64_data_${questionCounter}">
-</div>
-<label style="font-size:14px; font-weight:bold;">الخيارات (اختر الإجابة الصحيحة):</label>
-<div class="options-grid">
-${[0, 1, 2, 3].map(i => `
-<div class="option-item">
-<input type="radio" name="correct_q_${questionCounter}" value="${i}" ${i===0 ? 'checked' : ''}>
-<input type="text" class="q-option" placeholder="الخيار ${i+1}">
-</div>
-`).join('')}
-</div>
-`;
-container.appendChild(div);
-}
+        function updateScrub(e) {
+            const rect = progressContainer.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            let pos = (clientX - rect.left) / rect.width;
+            pos = Math.max(0, Math.min(1, pos));
+            progressBar.style.width = `${pos * 100}%`;
+            timeDisplay.textContent = `${formatTime(pos * video.duration)} / ${formatTime(video.duration)}`;
+            return pos;
+        }
 
-function removeQuestion(btn) {
-btn.closest('.question-card').remove();
-}
+        progressContainer.addEventListener('pointerdown', (e) => {
+            isDragging = true;
+            wasPlaying = !video.paused;
+            video.pause();
+            video.currentTime = updateScrub(e) * video.duration;
+            resetControlsTimeout();
+        });
 
-function previewImage(input) {
-const img = input.parentElement.querySelector('.preview-img');
-if (input.files && input.files[0]) {
-const reader = new FileReader();
-reader.onload = function(e) {
-img.src = e.target.result;
-img.style.display = 'block';
-}
-reader.readAsDataURL(input.files[0]);
-} else {
-img.style.display = 'none';
-}
-}
+        window.addEventListener('pointermove', (e) => {
+            if (isDragging) {
+                video.currentTime = updateScrub(e) * video.duration;
+                resetControlsTimeout();
+            }
+        });
 
-// ================= دالة تحويل Base64 (بدون تغيير) =================
-function fileToBase64(fileInput, hiddenInputId) {
-const hiddenInput = document.getElementById(hiddenInputId);
-hiddenInput.value = '';
+        window.addEventListener('pointerup', (e) => {
+            if (isDragging) {
+                isDragging = false;
+                if (wasPlaying) video.play();
+            }
+        });
 
-if (fileInput.files && fileInput.files[0]) {
-const file = fileInput.files[0];
-const reader = new FileReader();
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "00:00";
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            return h > 0 ? `${h}:${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}` : `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+        
+        video.ontimeupdate = () => {
+            if(!isDragging) {
+                const percent = (video.currentTime / video.duration) * 100;
+                progressBar.style.width = `${percent}%`;
+                timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+            }
+        };
+        video.onloadedmetadata = () => { timeDisplay.textContent = `00:00 / ${formatTime(video.duration)}`; };
 
-reader.onload = function(e) {
-hiddenInput.value = e.target.result;
-console.log(`Base64 data for ${hiddenInputId} is ready.`);
-};
+        muteBtn.onclick = () => {
+            video.muted = !video.muted;
+            muteBtn.innerHTML = video.muted ? '<i class="fa-solid fa-volume-xmark"></i>' : '<i class="fa-solid fa-volume-high"></i>';
+        };
 
-reader.readAsDataURL(file);
-}
-}
+        async function toggleFullScreen() {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (videoContainer.requestFullscreen) {
+                    await videoContainer.requestFullscreen().catch(err => console.log(err));
+                } else if (videoContainer.webkitRequestFullscreen) {
+                    videoContainer.webkitRequestFullscreen();
+                } else if (video.webkitEnterFullscreen) {
+                    video.webkitEnterFullscreen();
+                }
 
-// ================= دالة الحفظ (تم إزالة createdBy) =================
-async function saveExam() {
-const title = document.getElementById('examTitle').value.trim();
-const duration = document.getElementById('examDuration').value.trim();
-const yearKey = document.getElementById('yearSelect').value;
-const monthKey = document.getElementById('monthSelect').value;
-const qCards = document.querySelectorAll('.question-card');
+                try {
+                    if (screen.orientation && screen.orientation.lock) {
+                        await screen.orientation.lock('landscape');
+                    }
+                } catch (e) {}
+            } else {
+                if (document.exitFullscreen) {
+                    await document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+                
+                try {
+                    if (screen.orientation && screen.orientation.unlock) {
+                        screen.orientation.unlock();
+                    }
+                } catch (e) {}
+            }
+        }
+        
+        fullscreenBtn.onclick = toggleFullScreen;
 
-if (!title || !duration || !yearKey || !monthKey) {
-return alert('يرجى التأكد من إدخال البيانات الأساسية.');
-}
-if (qCards.length === 0) {
-return alert('يجب إضافة سؤال واحد على الأقل.');
-}
+        document.addEventListener('fullscreenchange', updateFullscreenButton);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
 
-const loadingOverlay = document.getElementById('loadingOverlay');
-const loadingText = document.getElementById('loadingText');
-loadingOverlay.style.display = 'flex';
+        function updateFullscreenButton() {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                fullscreenBtn.innerHTML = '<i class="fa-solid fa-expand"></i>';
+            } else {
+                fullscreenBtn.innerHTML = '<i class="fa-solid fa-compress"></i>';
+            }
+        }
 
-try {
-const examId = Date.now().toString() + '_' + Math.floor(Math.random() * 1000); 
-const questionsData = [];
-
-for (let i = 0; i < qCards.length; i++) {
-loadingText.innerText = `جاري تجهيز السؤال ${i + 1}...`;
-
-const card = qCards[i];
-const qText = card.querySelector('.q-text').value.trim();
-const optionsInputs = card.querySelectorAll('.q-option');
-const correctRadio = card.querySelector('input[type="radio"]:checked');
-const base64Input = card.querySelector('.q-base64-data'); 
-
-if (!qText) throw new Error(`السؤال رقم ${i+1} فارغ.`);
-
-const options = [];
-optionsInputs.forEach(opt => options.push(opt.value.trim()));
-if(options.some(o => o === "")) throw new Error(`أكمل الخيارات في السؤال ${i+1}.`);
-
-const correctIndex = parseInt(correctRadio.value);
-const correctAnswerText = options[correctIndex];
-
-let base64Url = base64Input.value || null; 
-
-const qObj = {
-question: qText,
-options: options,
-correctAnswer: correctAnswerText,
-};
-if (base64Url) qObj.imageUrl = base64Url;
-
-questionsData.push(qObj);
-}
-
-loadingText.innerText = 'جاري حفظ بيانات الامتحان...';
-
-const examData = {
-title: title,
-duration: parseInt(duration),
-monthKey: monthKey,
-questions: questionsData,
-createdAt: serverTimestamp(),
-// تم حذف createdBy: currentUser.uid 
-};
-
-// الحفظ في Realtime Database
-await set(ref(db, `exams/${yearKey}/${examId}`), examData);
-
-loadingText.innerText = 'تم الحفظ!';
-setTimeout(() => {
-alert('✅ تم حفظ الامتحان بنجاح!');
-window.location.reload();
-}, 1000);
-
-} catch (error) {
-console.error("Save Error:", error);
-
-// بما أن المصادقة مفتوحة، أي خطأ يعني مشكلة في القواعد أو الشبكة
-alert('❌ خطأ في الحفظ: يرجى التأكد من أن Realtime Database Rules مفتوحة للكتابة للجميع.');
-} finally {
-loadingOverlay.style.display = 'none';
-}
-}
-</script>
+    </script>
 </body>
-
 </html>
